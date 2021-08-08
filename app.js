@@ -160,13 +160,9 @@ app.post("/register", function (req, res) {
         console.log(err);
         res.redirect("/register");
       } else {
-        
         passport.authenticate("local")(req, res, function () {
-          
-            // will have a new session here  to prevent session fixation attacks
-            res.redirect("/secrets");
-          });
-        
+          res.redirect("/secrets");
+        });
       }
     }
   );
@@ -182,13 +178,9 @@ app.post("/login", function (req, res) {
     if (err) {
       console.log(err);
     } else {
-      
       passport.authenticate("local")(req, res, function () {
-        
-          // will have a new session here  to prevent session fixation attacks
-          res.redirect("/secrets");
-        });
-      
+        res.redirect("/secrets");
+      });
     }
   });
 });

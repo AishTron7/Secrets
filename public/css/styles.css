@@ -8,6 +8,10 @@ body {
     text-align: center;
 }
 
+.btn {
+  margin: 1.5%;
+}
+
 .secret-text {
   text-align: center;
   font-size: 2rem;

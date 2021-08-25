@@ -18,3 +18,5 @@ The major aims of this project are:-
 * To demonstrate my understanding of advanced security concepts by implementing hashing and salting of passwords
 
 Note: Authentication is not required for viewing secrets, it is required so that every person can submit only one secret. (To avoid spamming)
+
+Hosting is done on heroku and you can visit the site [here.](https://bit.ly/aishsecrets)

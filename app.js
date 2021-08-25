@@ -9,7 +9,6 @@ const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const findOrCreate = require("mongoose-findorcreate");
-
 const app = express();
 
 app.use(express.static("public"));
@@ -31,7 +30,17 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-mongoose.connect("mongodb://localhost:27017/userDB", { useNewUrlParser: true });
+mongoose.connect("mongodb+srv://admin-Aishwary:" + process.env.MONGOSECRET + "@cluster0.hpwki.mongodb.net/userDB", {
+  useNewUrlParser: true,
+useUnifiedTopology: true
+}).then(()=>{
+    console.log(`connection to database established`)
+}).catch(err=>{
+    console.log(`db error ${err.message}`);
+    process.exit(-1)
+});
+
+
 mongoose.set("useCreateIndex", true);
 
 const userSchema = new mongoose.Schema({
@@ -79,6 +88,7 @@ passport.use(
 app.get("/", function (req, res) {
   res.render("home");
 });
+
 
 app.get(
   "/auth/google",
@@ -144,11 +154,7 @@ app.post("/submit", function (req, res) {
 
 app.get("/logout", function (req, res) {
   req.logout();
-  req.session.regenerate(function (err) {
-    // will have a new session here to prevent session fixation attacks
-
     res.redirect("/");
-  });
 });
 
 app.post("/register", function (req, res) {

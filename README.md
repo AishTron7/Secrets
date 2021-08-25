@@ -1,4 +1,4 @@
-# The Secrets Pool :closed_lock_with_key: #
+# The Chamber of Secrets :closed_lock_with_key: #
 
 ## Concept: ##
 A user after signing up by creating an ID & password or signing up through google can submit their deepest secret with the world and thus reduce their cognitive burden. Since their identity will not be linked with their secret, no one can actually know about which secret was submitted by whom. Apart from reducing the burden of secret sharers, this website also serves as a source of entertainment and fascination as people read other people's secrets.

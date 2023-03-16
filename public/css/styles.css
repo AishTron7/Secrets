@@ -14,6 +14,7 @@ body {
 
 .secret-text {
   text-align: center;
+  margin: 3%;
   font-size: 2rem;
   color: #fff;
   background-color: rgb(80, 80, 80);

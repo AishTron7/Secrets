@@ -9,6 +9,7 @@ const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const findOrCreate = require("mongoose-findorcreate");
+
 const app = express();
 
 app.use(express.static("public"));
@@ -19,12 +20,11 @@ app.use(
   })
 );
 
-app.use(
-  session({
-    secret: process.env.SECRET,
-    resave: false,
-    saveUninitialized: false,
-  })
+app.use(session({
+  secret: process.env.SECRET,
+  resave: false,
+  saveUninitialized: false,
+})
 );
 
 app.use(passport.initialize());
@@ -32,12 +32,12 @@ app.use(passport.session());
 
 mongoose.connect("mongodb+srv://admin-Aishwary:" + process.env.MONGOSECRET + "@cluster0.hpwki.mongodb.net/userDB", {
   useNewUrlParser: true,
-useUnifiedTopology: true
-}).then(()=>{
-    console.log(`connection to database established`)
-}).catch(err=>{
-    console.log(`db error ${err.message}`);
-    process.exit(-1)
+  useUnifiedTopology: true
+}).then(() => {
+  console.log(`connection to database established`)
+}).catch(err => {
+  console.log(`db error ${err.message}`);
+  process.exit(-1)
 });
 
 
@@ -50,6 +50,7 @@ const userSchema = new mongoose.Schema({
   secret: String,
 });
 
+//this is gonna hash and salt our passwords and to save our users into our db
 userSchema.plugin(passportLocalMongoose);
 userSchema.plugin(findOrCreate);
 
@@ -57,12 +58,12 @@ const User = new mongoose.model("User", userSchema);
 
 passport.use(User.createStrategy());
 
-passport.serializeUser(function (user, done) {
+passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
-passport.deserializeUser(function (id, done) {
-  User.findById(id, function (err, user) {
+passport.deserializeUser((id, done) => {
+  User.findById(id, (err, user) => {
     done(err, user);
   });
 });
@@ -72,7 +73,7 @@ passport.use(
     {
       clientID: process.env.CLIENT_ID,
       clientSecret: process.env.CLIENT_SECRET,
-      callbackURL: "https://aishsecrets.herokuapp.com/auth/google/secrets",
+      callbackURL: "http://localhost:3000/auth/google/secrets", //secrets website link
       userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
     },
     function (accessToken, refreshToken, profile, cb) {
@@ -98,104 +99,79 @@ app.get(
 app.get(
   "/auth/google/secrets",
   passport.authenticate("google", { failureRedirect: "/login" }),
-  function (req, res) {
-    // Successful authentication, redirect to secrets.
-    res.redirect("/secrets");
-  }
+  (req, res) => res.redirect("/secrets")
 );
 
-app.get("/login", function (req, res) {
-  res.render("login");
-});
+app.get("/login", (req, res) => res.render("login"));
 
-app.get("/register", function (req, res) {
-  res.render("register");
-});
+app.get("/register", (req, res) => res.render("register"));
 
-app.get("/secrets", function (req, res) {
-  User.find({ secret: { $ne: null } }, function (err, foundUsers) {
-    if (err) {
-      console.log(err);
-    } else {
-      if (foundUsers) {
-        res.render("secrets", { usersWithSecrets: foundUsers });
-      }
-    }
-  });
-});
 
-app.get("/submit", function (req, res) {
-  if (req.isAuthenticated()) {
-    res.render("submit");
-  } else {
-    res.redirect("/login");
+//Everyone can see secrets, only submitting one requires login.
+//If you want secrets page behind authentication, use the isAuthenticated function like in app.get("/submit".. route
+app.get("/secrets", async (req, res) => {
+  try {
+    const foundUsers = await User.find({ secret: { $ne: null } });
+    res.render("secrets", { usersWithSecrets: foundUsers });
+  } catch (err) {
+    console.log(err);
   }
 });
 
-app.post("/submit", function (req, res) {
+app.get("/submit", (req, res) => {
+  req.isAuthenticated() ? res.render("submit") : res.redirect("/login");
+});
+
+//Once the user is authenticated and their session gets saved, their user details are saved to req.user.
+app.post("/submit", async (req, res) => {
   const submittedSecret = req.body.secret;
+  try {
+    const foundUser = await User.findById(req.user.id);
+    if (foundUser) {
+      foundUser.secret = submittedSecret;
+      await foundUser.save();
+      res.redirect("/secrets");
+    }
+  } catch (err) {
+    console.log(err);
+  }
+});
 
-  //Once the user is authenticated and their session gets saved, their user details are saved to req.user.
-  // console.log(req.user.id);
+app.get("/logout", (req, res) => {
+  req.logout(); //passport function
+  res.redirect("/");
+});
 
-  User.findById(req.user.id, function (err, foundUser) {
+app.post("/register", (req, res) => {
+  User.register({ username: req.body.username }, req.body.password, (err, user) => {
     if (err) {
       console.log(err);
+      res.redirect("/register");
     } else {
-      if (foundUser) {
-        foundUser.secret = submittedSecret;
-        foundUser.save(function () {
-          res.redirect("/secrets");
-        });
-      }
-    }
-  });
-});
-
-app.get("/logout", function (req, res) {
-  req.logout();
-    res.redirect("/");
-});
-
-app.post("/register", function (req, res) {
-  User.register(
-    { username: req.body.username },
-    req.body.password,
-    function (err, user) {
-      if (err) {
-        console.log(err);
-        res.redirect("/register");
-      } else {
-        passport.authenticate("local")(req, res, function () {
-          res.redirect("/secrets");
-        });
-      }
-    }
-  );
-});
-
-app.post("/login", function (req, res) {
-  const user = new User({
-    username: req.body.username,
-    password: req.body.password,
-  });
-
-  req.login(user, function (err) {
-    if (err) {
-      console.log(err);
-    } else {
-      passport.authenticate("local")(req, res, function () {
+      passport.authenticate("local")(req, res, () => {
         res.redirect("/secrets");
       });
     }
   });
 });
 
-let port = process.env.PORT;
-if (port == null || port == "") {
-  port = 3000;
-}
+app.post("/login", (req, res) => {
+  const user = new User({
+    username: req.body.username,
+    password: req.body.password,
+  });
+  req.login(user, (err) => {
+    if (err) {
+      console.log(err);
+    } else {
+      passport.authenticate("local")(req, res, () => {
+        res.redirect("/secrets");
+      });
+    }
+  });
+});
 
-app.listen(port, function () {
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
   console.log("Server has started successfully");
 });

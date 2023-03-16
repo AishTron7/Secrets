@@ -22,4 +22,4 @@ The major aims of this project are:-
 
 Note: Authentication is not required for viewing secrets, it is required so that each user can submit only one secret. (To avoid spamming)
 
-Hosting is done on ___ and you can visit the site [here.](https://bit.ly/aishsecrets)
+Hosting is done on Render and you can visit the site [here.](https://secrets-bfg5.onrender.com)

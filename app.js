@@ -22,6 +22,7 @@ app.use(
 );
 
 app.use(session({
+  //following two lines are a fix for a memory leak warning related to the express-session package
   cookie: { maxAge: 86400000 },
   store: new MemoryStore({
     checkPeriod: 86400000 // prune expired entries every 24h
@@ -78,7 +79,7 @@ passport.use(
     {
       clientID: process.env.CLIENT_ID,
       clientSecret: process.env.CLIENT_SECRET,
-      callbackURL: "http://localhost:3000/auth/google/secrets", //secrets website link
+      callbackURL: "https://secrets-bfg5.onrender.com", //secrets website link
       userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
     },
     function (accessToken, refreshToken, profile, cb) {

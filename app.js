@@ -79,7 +79,7 @@ passport.use(
     {
       clientID: process.env.CLIENT_ID,
       clientSecret: process.env.CLIENT_SECRET,
-      callbackURL: "https://secrets-bfg5.onrender.com", //secrets website link
+      callbackURL: "https://secrets-bfg5.onrender.com/auth/google/secrets", //secrets website link
       userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
     },
     function (accessToken, refreshToken, profile, cb) {
